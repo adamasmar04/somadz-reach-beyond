@@ -16,13 +16,13 @@ const Header = () => {
   const navLinks = isHome
     ? [
         { label: "Home", href: "#home" },
+        { label: "Live Ads", href: "/ads" },
         { label: "How It Works", href: "#how-it-works" },
-        { label: "Pricing", href: "#pricing" },
-        { label: "Contact", href: "#contact" },
       ]
     : [
         { label: "Home", href: "/" },
         { label: "Live Ads", href: "/ads" },
+        { label: "How It Works", href: "/#how-it-works" },
         ...(user ? [{ label: "My Ads", href: "/profile" }] : []),
       ];
 
