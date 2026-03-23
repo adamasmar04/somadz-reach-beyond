@@ -64,6 +64,10 @@ const CreateAd = () => {
   // Step 2
   const [selectedPlan, setSelectedPlan] = useState("basic");
 
+  // Step 2 extras
+  const [adPrice, setAdPrice] = useState("");
+  const [negotiable, setNegotiable] = useState(false);
+
   // Step 3
   const [mediaFiles, setMediaFiles] = useState<File[]>([]);
   const [mediaPreviews, setMediaPreviews] = useState<string[]>([]);
@@ -153,7 +157,8 @@ const CreateAd = () => {
         social_media: { tiktok, facebook, instagram, website },
         headline,
         package_type: selectedPlan,
-        price: PLANS.find((p) => p.id === selectedPlan)?.price ?? 0,
+        price: adPrice ? parseFloat(adPrice) : null,
+        negotiable,
         currency: "USD",
         image_url: imageUrl,
         media_urls: mediaUrls,
@@ -301,6 +306,33 @@ const CreateAd = () => {
                   />
                   <p className="text-xs text-muted-foreground text-right">{headline.length}/200</p>
                 </div>
+
+                {/* Price */}
+                <div className="grid md:grid-cols-2 gap-5">
+                  <div className="space-y-2">
+                    <Label className="text-lg font-semibold">Price (USD)</Label>
+                    <Input
+                      type="number"
+                      placeholder="e.g. 25.00"
+                      value={adPrice}
+                      onChange={(e) => setAdPrice(e.target.value)}
+                      className="bg-secondary border-border"
+                      min="0"
+                      step="0.01"
+                    />
+                  </div>
+                  <div className="flex items-end pb-2 gap-3">
+                    <label className="flex items-center gap-2 cursor-pointer text-sm text-muted-foreground">
+                      <input
+                        type="checkbox"
+                        checked={negotiable}
+                        onChange={(e) => setNegotiable(e.target.checked)}
+                        className="w-4 h-4 rounded border-border accent-primary"
+                      />
+                      Price is negotiable
+                    </label>
+                  </div>
+                </div>
               </CardContent>
             </Card>
           )}
@@ -415,6 +447,12 @@ const CreateAd = () => {
                       {targetLocation && <span>📍 {targetLocation}</span>}
                       <span>👥 Age {ageRange[0]}-{ageRange[1]}</span>
                     </div>
+                    {adPrice && (
+                      <div className="mt-2">
+                        <span className="text-xl font-bold text-gradient">${parseFloat(adPrice).toFixed(2)}</span>
+                        {negotiable && <Badge variant="secondary" className="ml-2 text-xs">Negotiable</Badge>}
+                      </div>
+                    )}
                     {hashtags && <p className="text-sm text-primary">{hashtags}</p>}
                     {tags && (
                       <div className="flex flex-wrap gap-1.5">
