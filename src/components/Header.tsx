@@ -31,6 +31,12 @@ const Header = () => {
     if (href.startsWith("#")) {
       const el = document.querySelector(href);
       el?.scrollIntoView({ behavior: "smooth" });
+    } else if (href.startsWith("/#")) {
+      navigate("/");
+      setTimeout(() => {
+        const el = document.querySelector(href.slice(1));
+        el?.scrollIntoView({ behavior: "smooth" });
+      }, 300);
     } else {
       navigate(href);
     }
