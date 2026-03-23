@@ -447,6 +447,12 @@ const CreateAd = () => {
                       {targetLocation && <span>📍 {targetLocation}</span>}
                       <span>👥 Age {ageRange[0]}-{ageRange[1]}</span>
                     </div>
+                    {adPrice && (
+                      <div className="mt-2">
+                        <span className="text-xl font-bold text-gradient">${parseFloat(adPrice).toFixed(2)}</span>
+                        {negotiable && <Badge variant="secondary" className="ml-2 text-xs">Negotiable</Badge>}
+                      </div>
+                    )}
                     {hashtags && <p className="text-sm text-primary">{hashtags}</p>}
                     {tags && (
                       <div className="flex flex-wrap gap-1.5">

@@ -6,7 +6,7 @@ import Footer from "@/components/Footer";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
-import { ArrowLeft, Phone, Eye, Clock, MapPin, Globe } from "lucide-react";
+import { ArrowLeft, Phone, Eye, Clock, MapPin, Globe, ChevronLeft, ChevronRight } from "lucide-react";
 import type { Tables } from "@/integrations/supabase/types";
 import type { Json } from "@/integrations/supabase/types";
 
@@ -29,6 +29,7 @@ const AdDetails = () => {
   const navigate = useNavigate();
   const [ad, setAd] = useState<Ad | null>(null);
   const [loading, setLoading] = useState(true);
+  const [activeImageIndex, setActiveImageIndex] = useState(0);
 
   useEffect(() => {
     if (!id) return;
@@ -42,7 +43,6 @@ const AdDetails = () => {
 
       if (!error && data) {
         setAd(data);
-        // Increment views
         await supabase.from("ads").update({ views: (data.views ?? 0) + 1 }).eq("id", id);
       }
       setLoading(false);
@@ -90,23 +90,59 @@ const AdDetails = () => {
   }
 
   const social = parseSocialMedia(ad.social_media);
+  const allImages = ad.media_urls && ad.media_urls.length > 0 ? ad.media_urls : ad.image_url ? [ad.image_url] : [];
+
+  const prevImage = () => setActiveImageIndex((prev) => (prev === 0 ? allImages.length - 1 : prev - 1));
+  const nextImage = () => setActiveImageIndex((prev) => (prev === allImages.length - 1 ? 0 : prev + 1));
 
   return (
     <div className="min-h-screen bg-background">
       <Header />
       <main className="pt-24 pb-16">
         <div className="container mx-auto px-6 max-w-4xl">
-          {/* Back Button */}
           <Button variant="ghost" className="mb-6 text-muted-foreground hover:text-foreground" onClick={() => navigate("/ads")}>
             <ArrowLeft className="w-4 h-4 mr-2" /> Back to Live Ads
           </Button>
 
           <div className="grid lg:grid-cols-5 gap-8">
-            {/* Image/Video - Left */}
+            {/* Image Gallery - Left */}
             <div className="lg:col-span-3 space-y-4">
-              <div className="rounded-2xl overflow-hidden border border-border bg-card">
-                {ad.image_url ? (
-                  <img src={ad.image_url} alt={ad.headline} className="w-full object-contain max-h-[500px]" />
+              <div className="relative rounded-2xl overflow-hidden border border-border bg-card">
+                {allImages.length > 0 ? (
+                  <>
+                    <img
+                      src={allImages[activeImageIndex]}
+                      alt={ad.headline}
+                      className="w-full object-contain max-h-[500px]"
+                    />
+                    {allImages.length > 1 && (
+                      <>
+                        <button
+                          onClick={prevImage}
+                          className="absolute left-3 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-background/80 backdrop-blur-sm flex items-center justify-center hover:bg-background transition-colors border border-border"
+                        >
+                          <ChevronLeft className="w-5 h-5 text-foreground" />
+                        </button>
+                        <button
+                          onClick={nextImage}
+                          className="absolute right-3 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-background/80 backdrop-blur-sm flex items-center justify-center hover:bg-background transition-colors border border-border"
+                        >
+                          <ChevronRight className="w-5 h-5 text-foreground" />
+                        </button>
+                        <div className="absolute bottom-3 left-1/2 -translate-x-1/2 flex gap-2">
+                          {allImages.map((_, i) => (
+                            <button
+                              key={i}
+                              onClick={() => setActiveImageIndex(i)}
+                              className={`w-2.5 h-2.5 rounded-full transition-colors ${
+                                i === activeImageIndex ? "bg-primary" : "bg-foreground/30"
+                              }`}
+                            />
+                          ))}
+                        </div>
+                      </>
+                    )}
+                  </>
                 ) : (
                   <div className="w-full aspect-video flex items-center justify-center bg-secondary">
                     <span className="text-7xl">📢</span>
@@ -114,11 +150,19 @@ const AdDetails = () => {
                 )}
               </div>
 
-              {/* Additional media */}
-              {ad.media_urls && ad.media_urls.length > 1 && (
+              {/* Thumbnail strip */}
+              {allImages.length > 1 && (
                 <div className="flex gap-3 overflow-x-auto pb-2">
-                  {ad.media_urls.map((url, i) => (
-                    <img key={i} src={url} alt="" className="w-20 h-20 rounded-lg object-cover border border-border cursor-pointer hover:border-primary transition-colors" />
+                  {allImages.map((url, i) => (
+                    <img
+                      key={i}
+                      src={url}
+                      alt=""
+                      onClick={() => setActiveImageIndex(i)}
+                      className={`w-20 h-20 rounded-lg object-cover border-2 cursor-pointer transition-colors ${
+                        i === activeImageIndex ? "border-primary" : "border-border hover:border-primary/50"
+                      }`}
+                    />
                   ))}
                 </div>
               )}
@@ -133,6 +177,14 @@ const AdDetails = () => {
                 <h1 className="text-3xl font-bold text-foreground leading-tight">{ad.headline}</h1>
                 <p className="text-lg text-muted-foreground mt-2 font-medium">{ad.business_name}</p>
               </div>
+
+              {/* Price */}
+              {ad.price != null && (
+                <div className="bg-secondary/50 rounded-xl p-4">
+                  <span className="text-2xl font-bold text-gradient">${Number(ad.price).toFixed(2)}</span>
+                  {ad.negotiable && <Badge variant="secondary" className="ml-2">Negotiable</Badge>}
+                </div>
+              )}
 
               {/* Stats */}
               <div className="flex flex-wrap gap-4 text-sm text-muted-foreground">
@@ -151,14 +203,6 @@ const AdDetails = () => {
                   </div>
                 )}
               </div>
-
-              {/* Price */}
-              {ad.price && (
-                <div className="bg-secondary/50 rounded-xl p-4">
-                  <span className="text-2xl font-bold text-gradient">{ad.currency ?? "$"}{ad.price}</span>
-                  {ad.negotiable && <Badge variant="secondary" className="ml-2">Negotiable</Badge>}
-                </div>
-              )}
 
               {/* Social Media */}
               {(social.facebook || social.instagram || social.tiktok || social.website) && (
